@@ -90,42 +90,40 @@ __global__ void finiteDiff(const float *inputVal, float *outputVal,
 
             // Radical oxidation
             radicalLoss = k2 * outputRad[index] * outputVal[index];
-            if (radicalLoss > outputRad[index])
+            // Boundary conditions - these quantities cannot go below zero
+            if (radicalLoss > outputRad[index] && radicalLoss > outputVal[index])
             {
-                if (outputRad[index] > outputVal[index])
-                {
-                    radicalLoss = outputRad[index];
-                    outputRad[index] = 0;
-                    outputVal[index] -= outputRad[index];
-                }
-                else
-                {
-                    radicalLoss = outputVal[index];
-                    outputRad[index] -= outputVal[index];
-                    outputVal[index] = 0;
-                }
+                outputRad[index] = 0;
+                outputVal[index] = 0;
             }
-            else if (radicalLoss > outputVal[index])
+            else if (radicalLoss > outputRad[index] && radicalLoss < outputVal[index])
             {
-                radicalLoss = outputVal[index];
-                outputRad[index] -= outputVal[index];
+                outputRad[index] = 0;
+                outputVal[index] -= radicalLoss;
+            }
+            else if (radicalLoss > outputVal[index] && radicalLoss < outputRad[index])
+            {
+                outputRad[index] -= radicalLoss;
                 outputVal[index] = 0;
             }
             else
             {
+                // Normal case
                 outputRad[index] -= radicalLoss;
                 outputVal[index] -= radicalLoss;
             }
 
             // Crosslinking
             crossLinking = k1 * outputRad[index] * outputRad[index];
-            if (crossLinking < outputRad[index])
+            // Boundary conditions - this quantity cannot go below zero
+            if (crossLinking > outputRad[index])
             {
-                outputRad[index] -= crossLinking;
+                outputRad[index] = 0;
             }
             else
             {
-                outputRad[index] = 0;
+                // Normal case
+                outputRad[index] -= crossLinking;
             }
         }
         else
