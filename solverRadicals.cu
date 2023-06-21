@@ -71,7 +71,7 @@ __global__ void finiteDiff(const float *inputVal, float *outputVal,
         float irradiationOn = 1;
         if (tStamp > 10000)
         {
-            rad = 0;
+            irradiationOn = 0;
         }
 
         // Assuming not a boundary of the array
