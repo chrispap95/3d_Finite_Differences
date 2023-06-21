@@ -68,7 +68,7 @@ __global__ void finiteDiff(const float *inputVal, float *outputVal,
         int z = (index - x - y * dimX) / dimY / dimX;
         float radicalLoss = 0;
         float crossLinking = 0;
-        float rad = 1;
+        float irradiationOn = 1;
         if (tStamp > 10000)
         {
             rad = 0;
@@ -86,7 +86,7 @@ __global__ void finiteDiff(const float *inputVal, float *outputVal,
             outputVal[index] += diffConst * (inputVal[index - dimX * dimY] + inputVal[index + dimX * dimY] - 2 * inputVal[index]); // Step the diffeq along the z dimension
 
             // Radical concentration - initial condition + radical formation
-            outputRad[index] = inputRad[index] + radicalFormRate * rad;
+            outputRad[index] = inputRad[index] + radicalFormRate * doseRate * irradiationOn;
 
             // Radical oxidation
             radicalLoss = k2 * outputRad[index] * outputVal[index];
