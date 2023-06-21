@@ -88,30 +88,29 @@ __global__ void finiteDiff(const float *inputVal, float *outputVal,
             // Radical concentration - initial condition + radical formation
             outputRad[index] = inputRad[index] + radicalFormRate * doseRate * irradiationOn;
 
-            // Radical oxidation
+            // Radical oxidation calculation
+            // Need to account for zero concentration cases
+            // Assume that the radical loss consumes fully the lowest quantity
             radicalLoss = k2 * outputRad[index] * outputVal[index];
-            // Boundary conditions - these quantities cannot go below zero
-            if (radicalLoss > outputRad[index] && radicalLoss > outputVal[index])
+            if (radicalLoss > outputRad[index])
             {
-                outputRad[index] = 0;
-                outputVal[index] = 0;
+                if (outputVal[index] > outputRad[index])
+                {
+                    radicalLoss = outputRad[index];
+                }
+                else
+                {
+                    radicalLoss = outputVal[index];
+                }
             }
-            else if (radicalLoss > outputRad[index] && radicalLoss < outputVal[index])
+            else if (radicalLoss > outputVal[index])
             {
-                outputRad[index] = 0;
-                outputVal[index] -= radicalLoss;
+                radicalLoss = outputVal[index];
             }
-            else if (radicalLoss > outputVal[index] && radicalLoss < outputRad[index])
-            {
-                outputRad[index] -= radicalLoss;
-                outputVal[index] = 0;
-            }
-            else
-            {
-                // Normal case
-                outputRad[index] -= radicalLoss;
-                outputVal[index] -= radicalLoss;
-            }
+
+            // Apply radical loss
+            outputRad[index] -= radicalLoss;
+            outputVal[index] -= radicalLoss;
 
             // Crosslinking
             crossLinking = k1 * outputRad[index] * outputRad[index];
