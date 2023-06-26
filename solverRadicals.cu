@@ -22,7 +22,7 @@ number.
 #include <cstdlib>
 #include <vector>
 #include <nvToolsExt.h>
-#include "CLI11/include/CLI/CLI.hpp"
+#include "CLI/CLI.hpp"
 #include <stdio.h>
 #include <ctime>
 
