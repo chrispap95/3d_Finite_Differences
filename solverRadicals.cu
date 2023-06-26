@@ -64,20 +64,21 @@ struct Config
 // Function to print the configuration
 void printConfig(const Config &config)
 {
-    std::cout << std::left << std::setw(25) << "Parameter"
+    std::cout << std::left << std::setw(26) << "Parameter"
               << "Value" << '\n';
-    std::cout << std::string(35, '-') << '\n';
-    std::cout << std::left << std::setw(25) << "Diffusion coefficient" << config.diffCoeff << '\n';
-    std::cout << std::left << std::setw(25) << "Radical formation rate" << config.radFormRate << '\n';
-    std::cout << std::left << std::setw(25) << "Radical crosslinking rate" << config.k1 << '\n';
-    std::cout << std::left << std::setw(25) << "Radical oxidation rate" << config.k2 << '\n';
-    std::cout << std::left << std::setw(25) << "Dose rate" << config.doseRate << '\n';
-    std::cout << std::left << std::setw(25) << "Irradiation time" << config.irrTime << '\n';
-    std::cout << std::left << std::setw(25) << "Number of time steps" << config.dimT << '\n';
-    std::cout << std::left << std::setw(25) << "Dimensions (" << config.dimX << ", " << config.dimY << ", " << config.dimZ << ")" << '\n';
-    std::cout << std::left << std::setw(25) << "Total number of steps" << config.DSIZE << '\n';
-    std::cout << std::left << std::setw(25) << "Number of slices" << config.SSIZE << '\n';
-    std::cout << std::left << std::setw(25) << "Output file name prefix" << config.outputFileNamePrefix << '\n';
+    std::cout << std::string(40, '-') << '\n';
+    std::cout << std::left << std::setw(26) << "Diffusion coefficient" << config.diffCoeff << '\n';
+    std::cout << std::left << std::setw(26) << "Radical formation rate" << config.radFormRate << '\n';
+    std::cout << std::left << std::setw(26) << "Radical crosslinking rate" << config.k1 << '\n';
+    std::cout << std::left << std::setw(26) << "Radical oxidation rate" << config.k2 << '\n';
+    std::cout << std::left << std::setw(26) << "Dose rate" << config.doseRate << '\n';
+    std::cout << std::left << std::setw(26) << "Irradiation time" << config.irrTime << '\n';
+    std::cout << std::left << std::setw(26) << "Number of time steps" << config.dimT << '\n';
+    std::cout << std::left << std::setw(26) << "Dimensions"
+              << "(" << config.dimX << ", " << config.dimY << ", " << config.dimZ << ")" << '\n';
+    std::cout << std::left << std::setw(26) << "Total number of steps" << config.DSIZE << '\n';
+    std::cout << std::left << std::setw(26) << "Number of slices" << config.SSIZE << '\n';
+    std::cout << std::left << std::setw(26) << "Output file name prefix" << config.outputFileNamePrefix << '\n';
 }
 
 __global__ void finiteDiff(const float *inputVal, float *outputVal,
