@@ -155,7 +155,7 @@ void stepAlgo(float *d_inputVal, float *d_outputVal, float *d_inputRad,
     // Run the main algorithm
     finiteDiff<<<blocks, threads>>>(d_inputVal, d_outputVal, d_inputRad,
                                     d_outputRad, d_saveSlice, d_saveActivity,
-                                    config, tStamp);
+                                    *config, tStamp);
     cudaCheckErrors("main kernel launch failure");
     cudaDeviceSynchronize();
 }
