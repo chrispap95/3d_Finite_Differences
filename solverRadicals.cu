@@ -29,19 +29,19 @@ number.
 // Use a struct for the configuration to make it easier to pass around
 struct Config
 {
-    float diffCoeff;
-    float radFormRate;
-    float k1;
-    float k2;
-    float doseRate;
-    int irrTime;
-    int dimT;
-    int dimX;
-    int dimY;
-    int dimZ;
-    int DSIZE;
-    int SSIZE;
-    std::string outputFileNamePrefix;
+    float diffCoeff;                  // Diffusion coefficient for oxygen in the polymer
+    float radFormRate;                // Radical formation rate = the specific rate of radical formation times the dose rate (use only that for now)
+    float k1;                         // Radical crosslinking rate
+    float k2;                         // Radical oxidation rate
+    float doseRate;                   // Dose rate
+    int irrTime;                      // Irradiation time
+    int dimT;                         // Number of time steps
+    int dimX;                         // Size of x dimension of the array
+    int dimY;                         // Size of y dimension of the array
+    int dimZ;                         // Size of z dimension of the array
+    int DSIZE;                        // Total size of the array
+    int SSIZE;                        // Number of slices
+    std::string outputFileNamePrefix; // Prefix for the output file name
 };
 
 #define blocks 80    // Should be number of streaming multiprocessors x2
@@ -114,7 +114,7 @@ __global__ void finiteDiff(const float *inputVal, float *outputVal,
             outputVal[index] += config.diffCoeff * (inputVal[index - config.dimX * config.dimY] + inputVal[index + config.dimX * config.dimY] - 2 * inputVal[index]);
 
             // Radical concentration - initial condition + radical formation
-            outputRad[index] = inputRad[index] + config.radFormRate * config.doseRate * irradiationOn;
+            outputRad[index] = inputRad[index] + config.radFormRate * irradiationOn;
 
             // Radical oxidation calculation
             // Need to account for zero concentration cases
@@ -251,24 +251,26 @@ int main(int argc, char **argv)
     CLI::App app{"Radical diffusion simulation"};
     Config config;
 
-    // Declare the command line options
-    config.diffCoeff = 0.1;
-    app.add_option("--diffCoeff", config.diffCoeff, "Diffusion coefficient");
-    config.radFormRate = 0.00025;
-    app.add_option("--radFormRate", config.radFormRate, "Radical formation rate");
-    config.k1 = 0.001;
-    app.add_option("--k1", config.k1, "Rate of crosslinking");
-    config.k2 = 1;
-    app.add_option("--k2", config.k2, "Rate of radical oxidation");
-    config.doseRate = 1;
-    app.add_option("--doseRate", config.doseRate, "Dose rate");
-    config.irrTime = 10000;
-    app.add_option("--irrTime", config.irrTime, "Irradiation time");
-    config.dimT = 20000;
-    app.add_option("--totalTime", config.dimT, "Total time");
+    // Set default values
+    config.diffCoeff = 0.01;  // this is perhaps too high but it sppeds up the simulation
+    config.radFormRate = 0.5; // data show it be at least 30 times larger than the diffusion coefficient and up to 1000 times larger for higher dose rates
+    config.k1 = 0.001;        // Leave this at this small value for now
+    config.k2 = 1.5;          // according to data: k2^2 is at least 1000 times 4*k1*radFormRate
+    config.doseRate = 1;      // not used for now
+    config.irrTime = 10000;   // total time of irradiation. Is important for the total dose
+    config.dimT = 20000;      // total time of the simulation. Make sure it is enough for full annealing
     std::vector<int> dimXYZ = {100, 100, 500};
-    app.add_option("--dimXYZ", dimXYZ, "Dimensions X Y Z of the array")->expected(3);
     config.outputFileNamePrefix = "output";
+
+    // Declare the command line options
+    app.add_option("--diffCoeff", config.diffCoeff, "Diffusion coefficient");
+    app.add_option("--radFormRate", config.radFormRate, "Radical formation rate");
+    app.add_option("--k1", config.k1, "Rate of crosslinking");
+    app.add_option("--k2", config.k2, "Rate of radical oxidation");
+    app.add_option("--doseRate", config.doseRate, "Dose rate");
+    app.add_option("--irrTime", config.irrTime, "Irradiation time");
+    app.add_option("--totalTime", config.dimT, "Total time");
+    app.add_option("--dimXYZ", dimXYZ, "Dimensions X Y Z of the array")->expected(3);
     app.add_option("--outputPrefix", config.outputFileNamePrefix, "Output file name");
 
     CLI11_PARSE(app, argc, argv);
