@@ -322,11 +322,13 @@ int main(int argc, char **argv)
     // np.fromfile("data.dat", dtype=np.float32)
     // data = np.reshape(data,(10000,100,100))
     // Shape is (t, y, x)
-    FILE *data = fopen(config.outputFileNamePrefix + "oxygen.dat", "wb");
+    std::string filenameOxygen = config.outputFileNamePrefix + "oxygen.dat";
+    FILE *data = fopen(filenameOxygen.c_str(), "wb");
     fwrite(saveSlice, sizeof(float), config.SSIZE, data);
     fclose(data);
 
-    FILE *activity = fopen(config.outputFileNamePrefix + "activity.dat", "wb");
+    std::string filenameActivity = config.outputFileNamePrefix + "activity.dat";
+    FILE *activity = fopen(filenameActivity.c_str(), "wb");
     fwrite(saveActivity, sizeof(float), config.SSIZE, activity);
     fclose(activity);
 
