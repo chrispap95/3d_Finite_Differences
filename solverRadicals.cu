@@ -240,11 +240,11 @@ int main(int argc, char **argv)
     app.add_option("--k1", config.k1, "Rate of crosslinking");
     config.k2 = 1;
     app.add_option("--k2", config.k2, "Rate of radical oxidation");
-    config.doseRate = 700;
+    config.doseRate = 1;
     app.add_option("--doseRate", config.doseRate, "Dose rate");
-    config.irrTime = 10000;
+    config.irrTime = 10;
     app.add_option("--irrTime", config.irrTime, "Irradiation time");
-    config.dimT = 20000;
+    config.dimT = 20;
     app.add_option("--totalTime", config.dimT, "Total time");
     std::vector<int> dimXYZ = {100, 100, 500};
     app.add_option("--dimXYZ", dimXYZ, "Dimensions X Y Z of the array")->expected(3);
@@ -256,6 +256,19 @@ int main(int argc, char **argv)
     config.dimZ = dimXYZ[2];
     config.DSIZE = config.dimX * config.dimY * config.dimZ;
     config.SSIZE = config.dimY * config.dimZ * config.dimT;
+
+    std::cout << "Running with the following parameters:"
+              << "\nDiffusion coefficient: " << config.diffCoeff
+              << "\nRadical formation rate: " << config.radFormRate
+              << "\nRate of crosslinking: " << config.k1
+              << "\nRate of radical oxidation: " << config.k2
+              << "\nDose rate: " << config.doseRate
+              << "\nIrradiation time: " << config.irrTime
+              << "\nTotal time: " << config.dimT
+              << "\nDimensions: " << config.dimX << " x " << config.dimY << " x " << config.dimZ
+              << "\nArray size: " << config.DSIZE
+              << "\nSlice size: " << config.SSIZE
+              << std::endl;
 
     // Allocate arrays for data storage
     float *inputArray = new float[config.DSIZE];
