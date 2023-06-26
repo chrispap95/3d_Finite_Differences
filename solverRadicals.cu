@@ -242,9 +242,9 @@ int main(int argc, char **argv)
     app.add_option("--k2", config.k2, "Rate of radical oxidation");
     config.doseRate = 1;
     app.add_option("--doseRate", config.doseRate, "Dose rate");
-    config.irrTime = 10;
+    config.irrTime = 10000;
     app.add_option("--irrTime", config.irrTime, "Irradiation time");
-    config.dimT = 20;
+    config.dimT = 20000;
     app.add_option("--totalTime", config.dimT, "Total time");
     std::vector<int> dimXYZ = {100, 100, 500};
     app.add_option("--dimXYZ", dimXYZ, "Dimensions X Y Z of the array")->expected(3);
