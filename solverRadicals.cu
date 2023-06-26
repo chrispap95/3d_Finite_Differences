@@ -291,7 +291,7 @@ int main(int argc, char **argv)
     }
 
     // Run the algorithm
-    run(inputArray, radArray, saveSlice, saveActivity, config);
+    run(inputArray, radArray, saveSlice, saveActivity, &config);
 
     // Store the data in a binary file
     // This can be opened in python with:
