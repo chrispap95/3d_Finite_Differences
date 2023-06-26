@@ -61,6 +61,25 @@ struct Config
         }                                                      \
     } while (0)
 
+// Function to print the configuration
+void printConfig(const Config &config)
+{
+    std::cout << std::left << std::setw(25) << "Parameter"
+              << "Value" << '\n';
+    std::cout << std::string(35, '-') << '\n';
+    std::cout << std::left << std::setw(25) << "Diffusion coefficient" << config.diffCoeff << '\n';
+    std::cout << std::left << std::setw(25) << "Radical formation rate" << config.radFormRate << '\n';
+    std::cout << std::left << std::setw(25) << "Radical crosslinking rate" << config.k1 << '\n';
+    std::cout << std::left << std::setw(25) << "Radical oxidation rate" << config.k2 << '\n';
+    std::cout << std::left << std::setw(25) << "Dose rate" << config.doseRate << '\n';
+    std::cout << std::left << std::setw(25) << "Irradiation time" << config.irrTime << '\n';
+    std::cout << std::left << std::setw(25) << "Number of time steps" << config.dimT << '\n';
+    std::cout << std::left << std::setw(25) << "Dimensions (" << config.dimX << ", " << config.dimY << ", " << config.dimZ << ')\n';
+    std::cout << std::left << std::setw(25) << "Total number of steps" << config.DSIZE << '\n';
+    std::cout << std::left << std::setw(25) << "Number of slices" << config.SSIZE << '\n';
+    std::cout << std::left << std::setw(25) << "Output file name prefix" << config.outputFileNamePrefix << '\n';
+}
+
 __global__ void finiteDiff(const float *inputVal, float *outputVal,
                            const float *inputRad, float *outputRad,
                            float *saveSlice, float *saveActivity,
@@ -248,6 +267,8 @@ int main(int argc, char **argv)
     app.add_option("--totalTime", config.dimT, "Total time");
     std::vector<int> dimXYZ = {100, 100, 500};
     app.add_option("--dimXYZ", dimXYZ, "Dimensions X Y Z of the array")->expected(3);
+    config.outputFileNamePrefix = "output";
+    app.add_option("--outputPrefix", config.outputFileNamePrefix, "Output file name");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -257,18 +278,8 @@ int main(int argc, char **argv)
     config.DSIZE = config.dimX * config.dimY * config.dimZ;
     config.SSIZE = config.dimY * config.dimZ * config.dimT;
 
-    std::cout << "Running with the following parameters:"
-              << "\nDiffusion coefficient: " << config.diffCoeff
-              << "\nRadical formation rate: " << config.radFormRate
-              << "\nRate of crosslinking: " << config.k1
-              << "\nRate of radical oxidation: " << config.k2
-              << "\nDose rate: " << config.doseRate
-              << "\nIrradiation time: " << config.irrTime
-              << "\nTotal time: " << config.dimT
-              << "\nDimensions: " << config.dimX << " x " << config.dimY << " x " << config.dimZ
-              << "\nArray size: " << config.DSIZE
-              << "\nSlice size: " << config.SSIZE
-              << std::endl;
+    // Print out the config
+    printConfig(config);
 
     // Allocate arrays for data storage
     float *inputArray = new float[config.DSIZE];
