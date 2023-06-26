@@ -233,21 +233,21 @@ int main(int argc, char **argv)
 
     // Declare the command line options
     config.diffCoeff = 0.1;
-    app.add_option("--diffCoeff", config.diffCoeff, "Diffusion coefficient", true);
+    app.add_option("--diffCoeff", config.diffCoeff, "Diffusion coefficient", (bool)true);
     config.radFormRate = 0.00025;
-    app.add_option("--radFormRate", config.radFormRate, "Radical formation rate", true);
+    app.add_option("--radFormRate", config.radFormRate, "Radical formation rate", (bool)true);
     config.k1 = 0.001;
-    app.add_option("--k1", config.k1, "Rate of crosslinking", true);
+    app.add_option("--k1", config.k1, "Rate of crosslinking", (bool)true);
     config.k2 = 1;
-    app.add_option("--k2", config.k2, "Rate of radical oxidation", true);
+    app.add_option("--k2", config.k2, "Rate of radical oxidation", (bool)true);
     config.doseRate = 700;
-    app.add_option("--doseRate", config.doseRate, "Dose rate", true);
+    app.add_option("--doseRate", config.doseRate, "Dose rate", (bool)true);
     config.irrTime = 10000;
-    app.add_option("--irrTime", config.irrTime, "Irradiation time", true);
+    app.add_option("--irrTime", config.irrTime, "Irradiation time", (bool)true);
     config.dimT = 20000;
-    app.add_option("--totalTime", config.dimT, "Total time", true);
+    app.add_option("--totalTime", config.dimT, "Total time", (bool)true);
     std::vector<int> dimXYZ = {100, 100, 500};
-    app.add_option("--dimXYZ", dimXYZ, "Dimensions X Y Z of the array", true)->expected(3);
+    app.add_option("--dimXYZ", dimXYZ, "Dimensions X Y Z of the array", (bool)true)->expected(3);
 
     CLI11_PARSE(app, argc, argv);
 
