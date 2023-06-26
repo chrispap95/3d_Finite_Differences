@@ -311,7 +311,7 @@ int main(int argc, char **argv)
     // np.fromfile("data.dat", dtype=np.float32)
     // data = np.reshape(data,(10000,100,100))
     // Shape is (t, y, x)
-    FILE *data = fopen("oxygenConc.dat", "wb");
+    FILE *data = fopen("oxygen.dat", "wb");
     fwrite(saveSlice, sizeof(float), config.SSIZE, data);
     fclose(data);
 
