@@ -41,6 +41,7 @@ struct Config
     int dimZ;
     int DSIZE;
     int SSIZE;
+    std::string outputFileNamePrefix;
 };
 
 #define blocks 80    // Should be number of streaming multiprocessors x2
@@ -66,39 +67,39 @@ __global__ void finiteDiff(const float *inputVal, float *outputVal,
                            Config *config, int tStamp)
 {
 
-    for (int index = threadIdx.x + blockDim.x * blockIdx.x; index < config.DSIZE; index += gridDim.x * blockDim.x)
+    for (int index = threadIdx.x + blockDim.x * blockIdx.x; index < config->DSIZE; index += gridDim.x * blockDim.x)
     {
 
         // Determine array location
-        int x = index % config.dimX;
-        int y = ((index - x) / config.dimX) % config.dimY;
-        int z = (index - x - y * config.dimX) / config.dimY / config.dimX;
+        int x = index % config->dimX;
+        int y = ((index - x) / config->dimX) % config->dimY;
+        int z = (index - x - y * config->dimX) / config->dimY / config->dimX;
         float radicalLoss = 0;
         float crossLinking = 0;
         float irradiationOn = 1;
-        if (tStamp > config.irrTime)
+        if (tStamp > config->irrTime)
         {
             irradiationOn = 0;
         }
 
         // Assuming not a boundary of the array
-        if (x > 0 && y > 0 && z > 0 && x < config.dimX - 1 && y < config.dimY - 1 && z < config.dimZ - 1)
+        if (x > 0 && y > 0 && z > 0 && x < config->dimX - 1 && y < config->dimY - 1 && z < config->dimZ - 1)
         {
             // Oxygen concentration - initial condition
             outputVal[index] = inputVal[index];
 
             // Applying the laplacian for oxygen diffusion across the 3 dimensions
-            outputVal[index] += config.diffCoeff * (inputVal[index - 1] + inputVal[index + 1] - 2 * inputVal[index]);
-            outputVal[index] += config.diffCoeff * (inputVal[index - config.dimX] + inputVal[index + config.dimX] - 2 * inputVal[index]);
-            outputVal[index] += config.diffCoeff * (inputVal[index - config.dimX * config.dimY] + inputVal[index + config.dimX * config.dimY] - 2 * inputVal[index]);
+            outputVal[index] += config->diffCoeff * (inputVal[index - 1] + inputVal[index + 1] - 2 * inputVal[index]);
+            outputVal[index] += config->diffCoeff * (inputVal[index - config->dimX] + inputVal[index + config->dimX] - 2 * inputVal[index]);
+            outputVal[index] += config->diffCoeff * (inputVal[index - config->dimX * config->dimY] + inputVal[index + config->dimX * config->dimY] - 2 * inputVal[index]);
 
             // Radical concentration - initial condition + radical formation
-            outputRad[index] = inputRad[index] + config.radFormRate * config.doseRate * irradiationOn;
+            outputRad[index] = inputRad[index] + config->radFormRate * config->doseRate * irradiationOn;
 
             // Radical oxidation calculation
             // Need to account for zero concentration cases
             // Assume that the radical loss consumes fully the lowest quantity
-            radicalLoss = config.k2 * outputRad[index] * outputVal[index];
+            radicalLoss = config->k2 * outputRad[index] * outputVal[index];
             if (radicalLoss > outputRad[index])
             {
                 if (outputVal[index] > outputRad[index])
@@ -120,7 +121,7 @@ __global__ void finiteDiff(const float *inputVal, float *outputVal,
             outputVal[index] -= radicalLoss;
 
             // Crosslinking
-            crossLinking = config.k1 * outputRad[index] * outputRad[index];
+            crossLinking = config->k1 * outputRad[index] * outputRad[index];
             // Boundary conditions - this quantity cannot go below zero
             if (crossLinking > outputRad[index])
             {
@@ -138,10 +139,10 @@ __global__ void finiteDiff(const float *inputVal, float *outputVal,
             outputVal[index] = inputVal[index];
         }
 
-        if (x == (int)config.dimX / 2)
+        if (x == (int)config->dimX / 2)
         {
-            saveSlice[tStamp * config.dimY * config.dimZ + y + z * config.dimY] = outputVal[index];
-            saveActivity[tStamp * config.dimY * config.dimZ + y + z * config.dimY] = radicalLoss;
+            saveSlice[tStamp * config->dimY * config->dimZ + y + z * config->dimY] = outputVal[index];
+            saveActivity[tStamp * config->dimY * config->dimZ + y + z * config->dimY] = radicalLoss;
         }
     }
 }
@@ -172,23 +173,23 @@ void run(float *inputVal, float *inputRad, float *saveSlice, float *saveActivity
     float *d_saveActivity;
 
     // Allocate memory on the gpu
-    cudaMalloc(&d_inputVal, config.DSIZE * sizeof(float));
-    cudaMalloc(&d_outputVal, config.DSIZE * sizeof(float));
-    cudaMalloc(&d_inputRad, config.DSIZE * sizeof(float));
-    cudaMalloc(&d_outputRad, config.DSIZE * sizeof(float));
-    cudaMalloc(&d_saveSlice, config.SSIZE * sizeof(float));
-    cudaMalloc(&d_saveActivity, config.SSIZE * sizeof(float));
+    cudaMalloc(&d_inputVal, config->DSIZE * sizeof(float));
+    cudaMalloc(&d_outputVal, config->DSIZE * sizeof(float));
+    cudaMalloc(&d_inputRad, config->DSIZE * sizeof(float));
+    cudaMalloc(&d_outputRad, config->DSIZE * sizeof(float));
+    cudaMalloc(&d_saveSlice, config->SSIZE * sizeof(float));
+    cudaMalloc(&d_saveActivity, config->SSIZE * sizeof(float));
     cudaCheckErrors("cudaMalloc failure"); // error checking
 
     // Copy data to the GPU
-    cudaMemcpy(d_inputVal, inputVal, config.DSIZE * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_outputVal, inputVal, config.DSIZE * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_inputRad, inputRad, config.DSIZE * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_outputRad, inputRad, config.DSIZE * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_inputVal, inputVal, config->DSIZE * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_outputVal, inputVal, config->DSIZE * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_inputRad, inputRad, config->DSIZE * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_outputRad, inputRad, config->DSIZE * sizeof(float), cudaMemcpyHostToDevice);
     cudaCheckErrors("cudaMemcpy H2D failure");
 
     std::time_t msStart = std::time(nullptr);
-    while (counter <= config.dimT)
+    while (counter <= config->dimT)
     {
         // Print out the counter every 1000 iterations
         if ((counter - 1) % 1000 == 0)
@@ -210,9 +211,9 @@ void run(float *inputVal, float *inputRad, float *saveSlice, float *saveActivity
     std::cout << double(msEnd - msStart) * double(1000) / double(counter) << " ms per step\n";
 
     // Copy data off the GPU
-    cudaMemcpy(inputVal, d_inputVal, config.DSIZE * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(saveSlice, d_saveSlice, config.SSIZE * sizeof(float), cudaMemcpyDeviceToHost);
-    cudaMemcpy(saveActivity, d_saveActivity, config.SSIZE * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(inputVal, d_inputVal, config->DSIZE * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(saveSlice, d_saveSlice, config->SSIZE * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(saveActivity, d_saveActivity, config->SSIZE * sizeof(float), cudaMemcpyDeviceToHost);
 
     cudaCheckErrors("kernel execution failure or cudaMemcpy H2D failure");
 
