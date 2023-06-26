@@ -74,7 +74,7 @@ void printConfig(const Config &config)
     std::cout << std::left << std::setw(25) << "Dose rate" << config.doseRate << '\n';
     std::cout << std::left << std::setw(25) << "Irradiation time" << config.irrTime << '\n';
     std::cout << std::left << std::setw(25) << "Number of time steps" << config.dimT << '\n';
-    std::cout << std::left << std::setw(25) << "Dimensions (" << config.dimX << ", " << config.dimY << ", " << config.dimZ << ')\n';
+    std::cout << std::left << std::setw(25) << "Dimensions (" << config.dimX << ", " << config.dimY << ", " << config.dimZ << ")" << '\n';
     std::cout << std::left << std::setw(25) << "Total number of steps" << config.DSIZE << '\n';
     std::cout << std::left << std::setw(25) << "Number of slices" << config.SSIZE << '\n';
     std::cout << std::left << std::setw(25) << "Output file name prefix" << config.outputFileNamePrefix << '\n';
@@ -322,11 +322,11 @@ int main(int argc, char **argv)
     // np.fromfile("data.dat", dtype=np.float32)
     // data = np.reshape(data,(10000,100,100))
     // Shape is (t, y, x)
-    FILE *data = fopen("oxygen.dat", "wb");
+    FILE *data = fopen(config.outputFileNamePrefix + "oxygen.dat", "wb");
     fwrite(saveSlice, sizeof(float), config.SSIZE, data);
     fclose(data);
 
-    FILE *activity = fopen("activity.dat", "wb");
+    FILE *activity = fopen(config.outputFileNamePrefix + "activity.dat", "wb");
     fwrite(saveActivity, sizeof(float), config.SSIZE, activity);
     fclose(activity);
 
