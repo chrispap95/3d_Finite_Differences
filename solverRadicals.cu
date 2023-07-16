@@ -41,6 +41,7 @@ struct Config
     int dimZ;                         // Size of z dimension of the array
     int DSIZE;                        // Total size of the array
     int SSIZE;                        // Number of slices
+    bool limitedSave;                 // Whether to save only the middle slice for activity
     std::string outputFileNamePrefix; // Prefix for the output file name
 };
 
@@ -78,6 +79,7 @@ void printConfig(const Config &config)
               << "(" << config.dimX << ", " << config.dimY << ", " << config.dimZ << ")" << '\n';
     std::cout << std::left << std::setw(26) << "Total number of steps" << config.DSIZE << '\n';
     std::cout << std::left << std::setw(26) << "Number of slices" << config.SSIZE << '\n';
+    std::cout << std::left << std::setw(26) << "Limited save" << config.limitedSave << '\n';
     std::cout << std::left << std::setw(26) << "Output file name prefix" << config.outputFileNamePrefix << '\n';
 }
 
@@ -161,8 +163,19 @@ __global__ void finiteDiff(const float *inputVal, float *outputVal,
 
         if (x == (int)config.dimX / 2)
         {
-            saveSlice[tStamp * config.dimY * config.dimZ + y + z * config.dimY] = outputVal[index];
-            saveActivity[tStamp * config.dimY * config.dimZ + y + z * config.dimY] = radicalLoss;
+            if (config.limitedSave)
+            {
+                if (z == (int)config.dimZ / 2)
+                {
+                    saveSlice[tStamp * config.dimY * config.dimZ + y + z * config.dimY] = outputVal[index];
+                    saveActivity[tStamp * config.dimY * config.dimZ + y + z * config.dimY] = radicalLoss;
+                }
+            }
+            else
+            {
+                saveSlice[tStamp * config.dimY * config.dimZ + y + z * config.dimY] = outputVal[index];
+                saveActivity[tStamp * config.dimY * config.dimZ + y + z * config.dimY] = radicalLoss;
+            }
         }
     }
 }
@@ -252,13 +265,14 @@ int main(int argc, char **argv)
     Config config;
 
     // Set default values
-    config.diffCoeff = 0.01;  // this is perhaps too high but it sppeds up the simulation
-    config.radFormRate = 0.5; // data show it be at least 30 times larger than the diffusion coefficient and up to 1000 times larger for higher dose rates
-    config.k1 = 0.001;        // Leave this at this small value for now
-    config.k2 = 1.5;          // according to data: k2^2 is at least 1000 times 4*k1*radFormRate
-    config.doseRate = 1;      // not used for now
-    config.irrTime = 10000;   // total time of irradiation. Is important for the total dose
-    config.dimT = 20000;      // total time of the simulation. Make sure it is enough for full annealing
+    config.diffCoeff = 0.01;    // this is perhaps too high but it sppeds up the simulation
+    config.radFormRate = 0.5;   // data show it be at least 30 times larger than the diffusion coefficient and up to 1000 times larger for higher dose rates
+    config.k1 = 0.001;          // Leave this at this small value for now
+    config.k2 = 1.5;            // according to data: k2^2 is at least 1000 times 4*k1*radFormRate
+    config.doseRate = 1;        // not used for now
+    config.irrTime = 10000;     // total time of irradiation. Is important for the total dose
+    config.dimT = 20000;        // total time of the simulation. Make sure it is enough for full annealing
+    config.limitedSave = false; // save everything by default
     std::vector<int> dimXYZ = {100, 100, 500};
     config.outputFileNamePrefix = "output";
 
@@ -272,6 +286,7 @@ int main(int argc, char **argv)
     app.add_option("--totalTime", config.dimT, "Total time");
     app.add_option("--dimXYZ", dimXYZ, "Dimensions X Y Z of the array")->expected(3);
     app.add_option("--outputPrefix", config.outputFileNamePrefix, "Output file name");
+    app.add_flag("-l,--limitedSave", config.limitedSave, "Save only the middle slice for activity");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -325,10 +340,13 @@ int main(int argc, char **argv)
     // np.fromfile("data.dat", dtype=np.float32)
     // data = np.reshape(data,(10000,100,100))
     // Shape is (t, y, x)
-    std::string filenameOxygen = config.outputFileNamePrefix + "oxygen.dat";
-    FILE *data = fopen(filenameOxygen.c_str(), "wb");
-    fwrite(saveSlice, sizeof(float), config.SSIZE, data);
-    fclose(data);
+    if (!config.limitedSave)
+    {
+        std::string filenameOxygen = config.outputFileNamePrefix + "oxygen.dat";
+        FILE *data = fopen(filenameOxygen.c_str(), "wb");
+        fwrite(saveSlice, sizeof(float), config.SSIZE, data);
+        fclose(data);
+    }
 
     std::string filenameActivity = config.outputFileNamePrefix + "activity.dat";
     FILE *activity = fopen(filenameActivity.c_str(), "wb");
