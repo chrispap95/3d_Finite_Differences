@@ -167,8 +167,8 @@ __global__ void finiteDiff(const float *inputVal, float *outputVal,
             {
                 if (z == (int)config.dimZ / 2)
                 {
-                    saveSlice[tStamp * config.dimY * config.dimZ + y + z * config.dimY] = outputVal[index];
-                    saveActivity[tStamp * config.dimY * config.dimZ + y + z * config.dimY] = radicalLoss;
+                    saveSlice[tStamp * config.dimY + y] = outputVal[index];
+                    saveActivity[tStamp * config.dimY + y] = radicalLoss;
                 }
             }
             else
