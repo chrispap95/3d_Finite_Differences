@@ -295,6 +295,10 @@ int main(int argc, char **argv)
     config.dimZ = dimXYZ[2];
     config.DSIZE = config.dimX * config.dimY * config.dimZ;
     config.SSIZE = config.dimY * config.dimZ * config.dimT;
+    if (config.limitedSave)
+    {
+        config.SSIZE = config.dimY * config.dimT;
+    }
 
     // Print out the config
     printConfig(config);
